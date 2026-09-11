@@ -128,9 +128,9 @@
   reducedMotion.addEventListener('change', setupHeroMotion);
 
   const floatingPaintConfigs = [
-    { name: 'blue', selector: '.floating-paint--blue', shadowSelector: '.floating-paint-shadow--blue', startX: 212, startY: 22, speedX: -.029, speedY: .025, rotation: -18, rotationRange: 12, rotationVelocity: .0024, scale: 1 },
-    { name: 'sepia', selector: '.floating-paint--sepia', shadowSelector: '.floating-paint-shadow--sepia', startX: 18, startY: 370, speedX: .036, speedY: -.021, rotation: 28, rotationRange: 14, rotationVelocity: -.0021, scale: 1 },
-    { name: 'vermilion', selector: '.floating-paint--vermilion', shadowSelector: '.floating-paint-shadow--vermilion', startX: 278, startY: 385, speedX: -.024, speedY: -.034, rotation: -32, rotationRange: 13, rotationVelocity: .0027, scale: 1 }
+    { name: 'blue', selector: '.floating-paint--blue', shadowSelector: '.floating-paint-shadow--blue', startX: 212, startY: 22, speedX: -.029, speedY: .025, rotation: -18, scale: 1, alphaBounds: { left: .051, top: .048, right: .992, bottom: .952 } },
+    { name: 'sepia', selector: '.floating-paint--sepia', shadowSelector: '.floating-paint-shadow--sepia', startX: 18, startY: 370, speedX: .036, speedY: -.021, rotation: 28, scale: 1, alphaBounds: { left: .041, top: .028, right: .978, bottom: .953 } },
+    { name: 'vermilion', selector: '.floating-paint--vermilion', shadowSelector: '.floating-paint-shadow--vermilion', startX: 278, startY: 385, speedX: -.024, speedY: -.034, rotation: -32, scale: 1, alphaBounds: { left: .055, top: .045, right: .982, bottom: .988 } }
   ];
   const featureArt = document.querySelector('.feature-art');
   let disposeFloatingPaint = () => {};
@@ -142,31 +142,73 @@
     const paints = floatingPaintConfigs.map((config) => {
       const element = featureArt.querySelector(config.selector);
       const shadow = featureArt.querySelector(config.shadowSelector);
-      return element ? { ...config, element, shadow, x: config.startX, y: config.startY, velocityX: config.speedX, velocityY: config.speedY, baseRotation: config.rotation, rotation: config.rotation, rotationVelocity: config.rotationVelocity } : null;
+      return element ? { ...config, element, shadow, x: config.startX, y: config.startY, velocityX: config.speedX, velocityY: config.speedY, baseSpeedX: Math.abs(config.speedX), baseSpeedY: Math.abs(config.speedY), rotation: config.rotation, rotationTarget: config.rotation, lastRotationKick: -Infinity } : null;
     }).filter(Boolean);
     if (!paints.length) return;
 
     let previousTime = 0;
     let frameId = 0;
     const getBounds = (paint) => {
-      const radians = Math.abs(paint.rotation) * Math.PI / 180;
+      const radians = paint.rotation * Math.PI / 180;
       const width = paint.element.offsetWidth * paint.scale;
       const height = paint.element.offsetHeight * paint.scale;
-      const visualWidth = Math.abs(width * Math.cos(radians)) + Math.abs(height * Math.sin(radians));
-      const visualHeight = Math.abs(width * Math.sin(radians)) + Math.abs(height * Math.cos(radians));
-      const extraX = (visualWidth - width) / 2;
-      const extraY = (visualHeight - height) / 2;
-      return { width, height, minX: extraX, maxX: Math.max(extraX, featureArt.clientWidth - width - extraX), minY: extraY, maxY: Math.max(extraY, featureArt.clientHeight - height - extraY), left: paint.x - extraX, right: paint.x - extraX + visualWidth, top: paint.y - extraY, bottom: paint.y - extraY + visualHeight };
+      const content = paint.alphaBounds;
+      const centerX = width / 2;
+      const centerY = height / 2;
+      const corners = [[width * content.left, height * content.top], [width * content.right, height * content.top], [width * content.right, height * content.bottom], [width * content.left, height * content.bottom]].map(([x, y]) => ({
+        x: centerX + (x - centerX) * Math.cos(radians) - (y - centerY) * Math.sin(radians),
+        y: centerY + (x - centerX) * Math.sin(radians) + (y - centerY) * Math.cos(radians)
+      }));
+      const localLeft = Math.min(...corners.map((corner) => corner.x));
+      const localRight = Math.max(...corners.map((corner) => corner.x));
+      const localTop = Math.min(...corners.map((corner) => corner.y));
+      const localBottom = Math.max(...corners.map((corner) => corner.y));
+      return { width, height, contentWidth: localRight - localLeft, contentHeight: localBottom - localTop, left: paint.x + localLeft, right: paint.x + localRight, top: paint.y + localTop, bottom: paint.y + localBottom };
     };
     const containPaint = (paint) => {
       const bounds = getBounds(paint);
-      paint.x = Math.min(Math.max(paint.x, bounds.minX), bounds.maxX);
-      paint.y = Math.min(Math.max(paint.y, bounds.minY), bounds.maxY);
+      if (bounds.left < 0) paint.x -= bounds.left;
+      if (bounds.right > featureArt.clientWidth) paint.x -= bounds.right - featureArt.clientWidth;
+      if (bounds.top < 0) paint.y -= bounds.top;
+      if (bounds.bottom > featureArt.clientHeight) paint.y -= bounds.bottom - featureArt.clientHeight;
     };
-    const nudgeRotation = (paint) => {
-      paint.rotationVelocity = Math.min(Math.max(-paint.rotationVelocity + (Math.random() - .5) * .0014, -.004), .004);
+    const kickRotation = (paint, turns, time) => {
+      if (time - paint.lastRotationKick < 1600) return;
+      const turn = turns[Math.floor(Math.random() * turns.length)];
+      paint.rotationTarget = paint.rotation + turn;
+      paint.lastRotationKick = time;
     };
-    const resolvePaintCollision = (first, second) => {
+    const settleVelocity = (velocity, naturalSpeed, delta) => {
+      const target = Math.sign(velocity || 1) * naturalSpeed;
+      return velocity + (target - velocity) * Math.min(delta * .0012, .045);
+    };
+    const mouseImpulseConfig = { radius: 360, velocityStrength: .0007, rotationStrength: .000004, maxVelocity: .075 };
+    let lastPointer = null;
+    const stirPaints = (event) => {
+      const cardBounds = featureArt.getBoundingClientRect();
+      const pointer = { x: event.clientX - cardBounds.left, y: event.clientY - cardBounds.top, time: event.timeStamp };
+      if (!lastPointer) { lastPointer = pointer; return; }
+
+      const moveX = pointer.x - lastPointer.x;
+      const moveY = pointer.y - lastPointer.y;
+      const moveDistance = Math.hypot(moveX, moveY);
+      lastPointer = pointer;
+      if (moveDistance < 2) return;
+
+      paints.forEach((paint) => {
+        const bounds = getBounds(paint);
+        const centerX = (bounds.left + bounds.right) / 2;
+        const centerY = (bounds.top + bounds.bottom) / 2;
+        const distance = Math.hypot(pointer.x - centerX, pointer.y - centerY);
+        const influence = Math.max(0, 1 - distance / mouseImpulseConfig.radius) ** 2;
+        if (!influence) return;
+
+        paint.velocityX = Math.min(Math.max(paint.velocityX + moveX * mouseImpulseConfig.velocityStrength * influence, -mouseImpulseConfig.maxVelocity), mouseImpulseConfig.maxVelocity);
+        paint.velocityY = Math.min(Math.max(paint.velocityY + moveY * mouseImpulseConfig.velocityStrength * influence, -mouseImpulseConfig.maxVelocity), mouseImpulseConfig.maxVelocity);
+        paint.rotationTarget += (moveX - moveY) * mouseImpulseConfig.rotationStrength * influence;
+      });
+    };
+    const resolvePaintCollision = (first, second, time) => {
       const a = getBounds(first);
       const b = getBounds(second);
       const overlapX = Math.min(a.right, b.right) - Math.max(a.left, b.left);
@@ -185,8 +227,8 @@
         first.velocityY *= -1;
         second.velocityY *= -1;
       }
-      nudgeRotation(first);
-      nudgeRotation(second);
+      kickRotation(first, [-48, 48, -90, 90], time);
+      kickRotation(second, [-48, 48, -90, 90], time);
       containPaint(first);
       containPaint(second);
     };
@@ -194,26 +236,24 @@
       const delta = previousTime ? Math.min(time - previousTime, 34) : 16;
       previousTime = time;
       paints.forEach((paint) => {
-        paint.rotation += paint.rotationVelocity * delta;
-        const minRotation = paint.baseRotation - paint.rotationRange;
-        const maxRotation = paint.baseRotation + paint.rotationRange;
-        if (paint.rotation <= minRotation || paint.rotation >= maxRotation) {
-          paint.rotation = Math.min(Math.max(paint.rotation, minRotation), maxRotation);
-          paint.rotationVelocity *= -1;
-        }
-        const bounds = getBounds(paint);
+        paint.velocityX = settleVelocity(paint.velocityX, paint.baseSpeedX, delta);
+        paint.velocityY = settleVelocity(paint.velocityY, paint.baseSpeedY, delta);
+        paint.rotation += (paint.rotationTarget - paint.rotation) * Math.min(delta * .00055, .018);
         paint.x += paint.velocityX * delta;
         paint.y += paint.velocityY * delta;
-        if (paint.x <= bounds.minX || paint.x >= bounds.maxX) { paint.x = Math.min(Math.max(paint.x, bounds.minX), bounds.maxX); paint.velocityX *= -1; nudgeRotation(paint); }
-        if (paint.y <= bounds.minY || paint.y >= bounds.maxY) { paint.y = Math.min(Math.max(paint.y, bounds.minY), bounds.maxY); paint.velocityY *= -1; nudgeRotation(paint); }
+        const bounds = getBounds(paint);
+        const hitX = bounds.left <= 0 || bounds.right >= featureArt.clientWidth;
+        const hitY = bounds.top <= 0 || bounds.bottom >= featureArt.clientHeight;
+        if (hitX) { containPaint(paint); paint.velocityX *= -1; kickRotation(paint, [-90, 90, 180], time); }
+        if (hitY) { containPaint(paint); paint.velocityY *= -1; kickRotation(paint, [-90, 90, 180], time); }
       });
-      for (let firstIndex = 0; firstIndex < paints.length; firstIndex += 1) for (let secondIndex = firstIndex + 1; secondIndex < paints.length; secondIndex += 1) resolvePaintCollision(paints[firstIndex], paints[secondIndex]);
+      for (let firstIndex = 0; firstIndex < paints.length; firstIndex += 1) for (let secondIndex = firstIndex + 1; secondIndex < paints.length; secondIndex += 1) resolvePaintCollision(paints[firstIndex], paints[secondIndex], time);
       paints.forEach((paint) => {
         const bounds = getBounds(paint);
         paint.element.style.transform = `translate3d(${paint.x}px, ${paint.y}px, 0) rotate(${paint.rotation}deg) scale(${paint.scale})`;
         if (paint.shadow) {
-          paint.shadow.style.width = `${bounds.width * .62}px`;
-          paint.shadow.style.transform = `translate3d(${paint.x + bounds.width * .19}px, ${paint.y + bounds.height * .86}px, 0)`;
+          paint.shadow.style.width = `${bounds.contentWidth * .62}px`;
+          paint.shadow.style.transform = `translate3d(${bounds.left + bounds.contentWidth * .19}px, ${bounds.top + bounds.contentHeight * .86}px, 0)`;
         }
       });
       frameId = window.requestAnimationFrame(frame);
@@ -224,12 +264,17 @@
       if (paint.shadow) { paint.shadow.style.left = '0px'; paint.shadow.style.top = '0px'; }
       containPaint(paint);
     });
+    const resetPointer = () => { lastPointer = null; };
+    featureArt.addEventListener('pointermove', stirPaints);
+    featureArt.addEventListener('pointerleave', resetPointer);
     frameId = window.requestAnimationFrame(frame);
     const resizeObserver = new ResizeObserver(() => paints.forEach(containPaint));
     resizeObserver.observe(featureArt);
     disposeFloatingPaint = () => {
       window.cancelAnimationFrame(frameId);
       resizeObserver.disconnect();
+      featureArt.removeEventListener('pointermove', stirPaints);
+      featureArt.removeEventListener('pointerleave', resetPointer);
       paints.forEach((paint) => {
         paint.element.style.removeProperty('left');
         paint.element.style.removeProperty('top');

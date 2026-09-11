@@ -3,6 +3,7 @@
   .header-inner,footer{width:1200px;max-width:1200px;padding-right:0;padding-left:0}
   .start,.community{width:1200px;max-width:1200px;padding-right:0;padding-left:0}
   .picks{padding-right:0;padding-left:0}.picks>*{width:1200px;max-width:1200px}
+  .picks{padding-top:170px;padding-bottom:190px}.feature-card{min-height:720px;height:720px}
   .hero{min-height:910px;padding-right:0;padding-left:0}
   .hero>.eyebrow,.hero>h1,.hero>.hero-copy,.hero>.button,.hero>.scroll{margin-left:calc((100vw - 1200px)/2)}
   .hero>.scroll{left:auto}
