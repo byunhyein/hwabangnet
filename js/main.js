@@ -11,6 +11,42 @@
     });
   }
 
+  const portfolioModal = document.querySelector('#portfolio-modal');
+  const portfolioModalClose = portfolioModal?.querySelector('.portfolio-modal__close');
+  const portfolioModalConfirm = portfolioModal?.querySelector('.portfolio-modal__confirm');
+  const portfolioModalDontShow = portfolioModal?.querySelector('.portfolio-modal__dont-show input');
+  const portfolioModalDialog = portfolioModal?.querySelector('.portfolio-modal__dialog');
+  const portfolioModalStorageKey = 'hwabangnet-portfolio-notice-dismissed';
+  let portfolioModalPreviousFocus = null;
+
+  const getPortfolioModalPreference = () => {
+    try { return window.localStorage.getItem(portfolioModalStorageKey) === 'true'; } catch { return false; }
+  };
+  const closePortfolioModal = () => {
+    if (!portfolioModal || portfolioModal.hidden) return;
+    if (portfolioModalDontShow?.checked) {
+      try { window.localStorage.setItem(portfolioModalStorageKey, 'true'); } catch { /* Storage may be unavailable. */ }
+    }
+    portfolioModal.hidden = true;
+    document.body.classList.remove('portfolio-modal-open');
+    portfolioModalPreviousFocus?.focus?.();
+  };
+  const openPortfolioModal = () => {
+    if (!portfolioModal || getPortfolioModalPreference()) return;
+    portfolioModalPreviousFocus = document.activeElement;
+    portfolioModal.hidden = false;
+    document.body.classList.add('portfolio-modal-open');
+    window.requestAnimationFrame(() => portfolioModalDialog?.focus());
+  };
+  if (portfolioModal) {
+    portfolioModalClose?.addEventListener('click', closePortfolioModal);
+    portfolioModalConfirm?.addEventListener('click', closePortfolioModal);
+    document.addEventListener('keydown', (event) => {
+      if (event.key === 'Escape' && !portfolioModal.hidden) closePortfolioModal();
+    });
+    openPortfolioModal();
+  }
+
   const hero = document.querySelector('.hero');
   const desktopMotion = window.matchMedia('(min-width: 1280px)');
   const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
