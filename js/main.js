@@ -29,6 +29,7 @@
     }
     portfolioModal.hidden = true;
     document.body.classList.remove('portfolio-modal-open');
+    portfolioModal.dispatchEvent(new Event('portfolio-modal-closed'));
     portfolioModalPreviousFocus?.focus?.();
   };
   const openPortfolioModal = () => {
@@ -49,7 +50,44 @@
 
   const hero = document.querySelector('.hero');
   const desktopMotion = window.matchMedia('(min-width: 1280px)');
+  const desktopHover = window.matchMedia('(min-width: 1280px) and (hover: hover) and (pointer: fine)');
   const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
+  const sectionNavigation = document.querySelector('.section-navigation');
+  const sectionNavigationSections = [...document.querySelectorAll('main > section[id]')];
+
+  if (sectionNavigation && sectionNavigationSections.length) {
+    const previousButton = sectionNavigation.querySelector('[data-section-nav="previous"]');
+    const nextButton = sectionNavigation.querySelector('[data-section-nav="next"]');
+    const topButton = sectionNavigation.querySelector('[data-section-nav="top"]');
+    let currentSectionIndex = 0;
+    let scrollFrame = 0;
+
+    const getCurrentSectionIndex = () => {
+      const marker = window.scrollY + window.innerHeight * .34;
+      return sectionNavigationSections.reduce((activeIndex, section, index) => (marker >= section.offsetTop ? index : activeIndex), 0);
+    };
+    const updateSectionNavigation = () => {
+      currentSectionIndex = getCurrentSectionIndex();
+      previousButton.disabled = currentSectionIndex === 0;
+      nextButton.disabled = currentSectionIndex === sectionNavigationSections.length - 1;
+    };
+    const moveToSection = (index) => {
+      const target = sectionNavigationSections[index];
+      if (!target) return;
+      target.scrollIntoView({ behavior: reducedMotion.matches ? 'auto' : 'smooth', block: 'start' });
+    };
+    previousButton.addEventListener('click', () => moveToSection(currentSectionIndex - 1));
+    nextButton.addEventListener('click', () => moveToSection(currentSectionIndex + 1));
+    topButton.addEventListener('click', () => {
+      window.scrollTo({ top: 0, behavior: reducedMotion.matches ? 'auto' : 'smooth' });
+    });
+    window.addEventListener('scroll', () => {
+      window.cancelAnimationFrame(scrollFrame);
+      scrollFrame = window.requestAnimationFrame(updateSectionNavigation);
+    }, { passive: true });
+    window.addEventListener('resize', updateSectionNavigation);
+    updateSectionNavigation();
+  }
   let disposeHeroMotion = () => {};
 
   const setupHeroMotion = () => {
@@ -330,9 +368,10 @@
 
   const setupStartAccordion = () => {
     disposeStartAccordion();
-    if (!startPaths || !desktopMotion.matches) return;
+    if (!startPaths || !desktopHover.matches) return;
 
     const panels = [...startPaths.querySelectorAll('[data-start-panel]')];
+    startPaths.classList.add('start-paths--interactive');
     const canAnimate = Boolean(window.gsap) && !reducedMotion.matches;
     const revealItems = (panel) => [...panel.querySelectorAll('.panel-keywords,.panel-label,.artwork-placeholder,.visual-item img')];
     const activate = (panel) => {
@@ -364,6 +403,7 @@
     startPaths.addEventListener('pointerleave', onPointerLeave);
 
     disposeStartAccordion = () => {
+      startPaths.classList.remove('start-paths--interactive');
       panelHandlers.forEach(({ panel, pointerEnter, focus }) => {
         panel.classList.remove('is-active');
         panel.removeEventListener('pointerenter', pointerEnter);
@@ -376,7 +416,13 @@
     };
   };
 
-  window.addEventListener('load', setupStartAccordion, { once: true });
-  desktopMotion.addEventListener('change', setupStartAccordion);
-  reducedMotion.addEventListener('change', setupStartAccordion);
+  const initializeStartAccordion = () => {
+    if (portfolioModal && !portfolioModal.hidden) return;
+    setupStartAccordion();
+  };
+
+  window.addEventListener('load', initializeStartAccordion, { once: true });
+  portfolioModal?.addEventListener('portfolio-modal-closed', () => window.requestAnimationFrame(initializeStartAccordion));
+  desktopHover.addEventListener('change', initializeStartAccordion);
+  reducedMotion.addEventListener('change', initializeStartAccordion);
 })();
