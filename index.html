@@ -231,77 +231,81 @@
 따라가면<br>
 <em>재료를</em><br>
 만난다</h2>
-<p>작품이 영감에서 끝나지 않도록,<br>
-사용 재료를 통해 다음 작업으로<br>
-이어지는 경험을 설계합니다.</p>
-<button class="button outline used-button" aria-expanded="false" aria-controls="used-materials">USED MATERIALS <b>+</b>
+<p>마음에 든 작품에서<br>
+새로운 재료를 발견해보세요.</p>
+<button class="button outline used-button" aria-expanded="false" aria-controls="used-materials">사용 재료 보기 <b>+</b>
 </button>
 </div>
-<div class="artwork-image">
-<img src="assets/artwork/artwork-color-discs.png" alt="파란 바탕 위에 겹쳐진 노랑, 주황, 아이보리 색 원형 오브제">
+<div class="artwork-image" data-artwork-reveal>
+<img src="assets/community/community-art-studio.png" alt="스케치북 위에 완성한 과슈 작품과 주변 미술 재료">
+<button class="material-marker material-marker--one" type="button" data-material-card="material-01" aria-describedby="material-tip-01" aria-pressed="false">01<span class="material-tooltip" id="material-tip-01" role="tooltip">01 / GOUACHE / VERMILION</span></button>
+<button class="material-marker material-marker--two" type="button" data-material-card="material-02" aria-describedby="material-tip-02" aria-pressed="false">02<span class="material-tooltip" id="material-tip-02" role="tooltip">02 / ROUND BRUSH / WOOD</span></button>
+<button class="material-marker material-marker--three" type="button" data-material-card="material-03" aria-describedby="material-tip-03" aria-pressed="false">03<span class="material-tooltip" id="material-tip-03" role="tooltip">03 / PAPER / SKETCHBOOK</span></button>
 </div>
 <div class="used-materials" id="used-materials" hidden>
-<p class="eyebrow">USED MATERIALS / PLACEHOLDER</p>
-<a href="#">01 <span>대표 물감 제품</span> ↗</a>
-<a href="#">02 <span>대표 종이 제품</span> ↗</a>
-<a href="#">03 <span>대표 붓 제품</span> ↗</a>
+<p class="eyebrow">USED MATERIALS</p>
+<div class="material-card-grid">
+<article class="material-card" id="material-01" tabindex="-1"><figure><img src="assets/picks/material-paint-vermilion.png" alt="주황색 수채화 물감 튜브"></figure><div><span>01</span><p>GOUACHE</p><h3>수채화 물감</h3><a href="#picks">VIEW PRODUCT <b>↗</b></a></div></article>
+<article class="material-card" id="material-02" tabindex="-1"><figure><img src="assets/start/woodenbrush.png" alt="나무 손잡이 붓"></figure><div><span>02</span><p>BRUSH</p><h3>둥근 붓</h3><a href="#picks">VIEW PRODUCT <b>↗</b></a></div></article>
+<article class="material-card" id="material-03" tabindex="-1"><figure><img src="assets/start/sketchbook.png" alt="스케치북"></figure><div><span>03</span><p>PAPER / SKETCHBOOK</p><h3>드로잉 페이퍼</h3><a href="#picks">VIEW PRODUCT <b>↗</b></a></div></article>
+</div>
 </div>
 </section>
 <section class="section brand" id="brand">
-<div class="brand-visual">
+<div class="brand-visual" data-brand-reveal>
 <b class="brand-word brand-word--color">COLOR</b>
 <b class="brand-word brand-word--material">MATERIAL</b>
 <b class="brand-word brand-word--form">FORM</b>
-<img class="brand-stroke brand-stroke--orange" src="assets/hero/hero-orange-paint-stroke.png" alt="">
-<img class="brand-stroke brand-stroke--blue" src="assets/hero/hero-blue-paint-ribbon.png" alt="">
-<img class="brand-stroke brand-stroke--yellow" src="assets/hero/hero-orange-paint-stroke.png" alt="">
-<img class="brand-tube brand-tube--yellow" src="assets/hero/hero-yellow-paint-tube.png" alt="">
-<img class="brand-tube brand-tube--blue" src="assets/picks/material-paint-tube.png" alt="">
-<i class="brand-doodle brand-doodle--left">for<br>creators</i>
-<i class="brand-blob brand-blob--orange"></i>
-<i class="brand-blob brand-blob--blue"></i>
+<img class="brand-stroke brand-stroke--ultramarine" src="assets/hero/hero-blue-paint-ribbon.png" alt="">
+<img class="brand-tube brand-tube--ultramarine" src="assets/picks/material-paint-tube.png" alt="울트라마린 블루 수채화 물감 튜브">
+<span class="brand-material-name">ULTRAMARINE<br>BLUE / PB29</span>
+<i class="brand-chip" aria-hidden="true"></i>
+<i class="brand-doodle brand-doodle--left">deep blue<br>for layers</i>
 </div>
 <div class="brand-copy">
 <p class="eyebrow">04 / BRAND &amp; MATERIAL STORY</p>
 <h2>알고 쓰면,<br>재료는<br><span class="brand-title-emphasis">더 <em>재미있다</em></span></h2>
-<p>특정 브랜드와 재료의 특징, 이야기, 추천 제품을<br>한 장면에서 연결합니다.</p>
-<a class="brand-story-button" href="#">BRAND STORY <b>→</b></a>
-<a href="#">브랜드와 재료 이야기 보기　↘</a>
+<p>재료마다 다른 색과 질감, 쓰임을 살펴보고<br>작업에 어울리는 제품을 찾을 수 있도록 도와드립니다.</p>
+<dl class="material-spec"><div><dt>COLOR</dt><dd>Ultramarine</dd></div><div><dt>PIGMENT</dt><dd>PB29</dd></div><div><dt>TYPE</dt><dd>Watercolor</dd></div></dl>
+<a class="brand-story-button" href="#picks">MATERIAL STORY <b>→</b></a>
 </div>
 </section>
 <section class="section community" id="community">
 <div class="section-head">
-<div>
+<div class="community-intro">
 <p class="eyebrow">05 / COMMUNITY</p>
 <h2>누군가의 작업은<br>다음 영감이 된다.</h2>
+<p>완성된 작품부터 작업 중의 순간까지,<br>서로의 작업에서 새로운 영감을 발견합니다.</p>
 </div>
 <a href="#">커뮤니티 전체 보기　↗</a>
 </div>
-<div class="community-grid">
-<article class="post tall product-placeholder">
-<b>DRAWING LOG</b>
-<small>IMAGE PLACEHOLDER</small>
+<div class="community-grid" data-community-reveal>
+<article class="community-post community-log">
+<div class="community-post__image"><img src="assets/picks/picks-blue-sketchbook-clean.png" alt="파란 스케치북"></div>
+<div class="community-post__caption"><b>DRAWING LOG / 01</b><p>오늘의 선과 색을<br>가볍게 기록합니다.</p><a href="#artwork">VIEW LOG <span>↗</span></a></div>
 </article>
-<article class="post note-post">
-<p class="eyebrow">WORK IN PROGRESS</p>
-<h3>작업 과정과<br>재료 경험을<br>나누는 자리.</h3>
-<small>실제 사용자 작품 자산으로 교체</small>
+<article class="community-post community-wip">
+<div class="community-post__image"><img src="assets/community/community-art-studio.png" alt="작업 테이블 위의 팔레트와 스케치북"></div>
+<div class="community-post__caption"><b>WORK IN PROGRESS</b><p>아직 완성되지 않은<br>작업의 순간들.</p><a href="#artwork">VIEW PROCESS <span>↗</span></a></div>
 </article>
-<article class="post wide">
+<article class="community-post community-main">
 <img src="assets/community/community-art-studio.png" alt="물감 팔레트와 스케치북에 그린 딸기와 로즈메리 그림">
-<b>ART STUDIO</b>
-<small>IMAGE PLACEHOLDER</small>
+<div class="community-post__caption"><b>ART STUDIO / 01</b><p>작품과 함께 사용한<br>재료를 만나보세요.</p><a href="#artwork">VIEW ARTWORK <span>↗</span></a></div>
 </article>
 </div>
 </section>
 <section class="section b2b" id="b2b">
-<p class="eyebrow">06 / PROFESSIONAL PURCHASE</p>
-<div>
-<h2>작업의 규모가 커져도,<br>재료 선택은<br>더 정확하게</h2>
-<p>학교·학원·기관을 위한 대량구매, 견적문의, 예산 맞춤 구매<br>경험은 별도 목적의 정보 구조로 제공합니다.</p>
-<a class="button light" href="#">B2B 서비스 알아보기 <b>↗</b>
-</a>
+<p class="eyebrow">06 / B2B &amp; BULK ORDER</p>
+<div class="b2b-content">
+<h2>작업의 규모가 커질수록,<br>재료 선택은<br>더 정확하게.</h2>
+<div class="b2b-details"><p>학교·학원·기관의 대량구매부터 견적 상담까지,<br>예산과 용도에 맞는 재료 선택을 도와드립니다.</p><a class="button light" href="#">B2B 서비스 알아보기 <b>↗</b></a></div>
 </div>
+<nav class="b2b-services" aria-label="B2B 서비스">
+<a href="#"><span>01</span><strong>대량구매</strong><small>BULK ORDER</small><b>↗</b></a>
+<a href="#"><span>02</span><strong>견적문의</strong><small>QUOTATION</small><b>↗</b></a>
+<a href="#"><span>03</span><strong>예산 맞춤</strong><small>BUDGET PLAN</small><b>↗</b></a>
+<a href="#"><span>04</span><strong>반복주문</strong><small>REORDER</small><b>↗</b></a>
+</nav>
 </section>
 </main>
 <aside class="section-navigation" aria-label="섹션 이동">

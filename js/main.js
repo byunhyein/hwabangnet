@@ -1,14 +1,71 @@
 (() => {
   const usedMaterialsButton = document.querySelector('.used-button');
   const usedMaterials = document.querySelector('#used-materials');
+  const materialMarkers = [...document.querySelectorAll('[data-material-card]')];
+  const materialCards = [...document.querySelectorAll('.material-card')];
 
   if (usedMaterialsButton && usedMaterials) {
+    const setMaterialsExpanded = (isExpanded) => {
+      usedMaterialsButton.setAttribute('aria-expanded', String(isExpanded));
+      usedMaterialsButton.querySelector('b').textContent = isExpanded ? '−' : '+';
+      usedMaterials.hidden = !isExpanded;
+    };
     usedMaterialsButton.addEventListener('click', () => {
       const isExpanded = usedMaterialsButton.getAttribute('aria-expanded') === 'true';
-      usedMaterialsButton.setAttribute('aria-expanded', String(!isExpanded));
-      usedMaterialsButton.querySelector('b').textContent = isExpanded ? '+' : '−';
-      usedMaterials.hidden = isExpanded;
+      setMaterialsExpanded(!isExpanded);
     });
+    materialMarkers.forEach((marker) => {
+      marker.addEventListener('click', () => {
+        const cardId = marker.dataset.materialCard;
+        setMaterialsExpanded(true);
+        materialMarkers.forEach((item) => item.setAttribute('aria-pressed', String(item === marker)));
+        materialCards.forEach((card) => card.classList.toggle('is-highlighted', card.id === cardId));
+        const targetCard = document.getElementById(cardId);
+        targetCard?.focus({ preventScroll: true });
+      });
+    });
+  }
+
+  const artworkReveal = document.querySelector('[data-artwork-reveal]');
+  if (artworkReveal) {
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches || !('IntersectionObserver' in window)) {
+      artworkReveal.classList.add('is-revealed');
+    } else {
+      const artworkObserver = new IntersectionObserver(([entry], observer) => {
+        if (!entry.isIntersecting) return;
+        artworkReveal.classList.add('is-revealed');
+        observer.disconnect();
+      }, { threshold: .2 });
+      artworkObserver.observe(artworkReveal);
+    }
+  }
+
+  const brandReveal = document.querySelector('[data-brand-reveal]');
+  if (brandReveal) {
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches || !('IntersectionObserver' in window)) {
+      brandReveal.classList.add('is-revealed');
+    } else {
+      const brandObserver = new IntersectionObserver(([entry], observer) => {
+        if (!entry.isIntersecting) return;
+        brandReveal.classList.add('is-revealed');
+        observer.disconnect();
+      }, { threshold: .24 });
+      brandObserver.observe(brandReveal);
+    }
+  }
+
+  const communityReveal = document.querySelector('[data-community-reveal]');
+  if (communityReveal) {
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches || !('IntersectionObserver' in window)) {
+      communityReveal.classList.add('is-revealed');
+    } else {
+      const communityObserver = new IntersectionObserver(([entry], observer) => {
+        if (!entry.isIntersecting) return;
+        communityReveal.classList.add('is-revealed');
+        observer.disconnect();
+      }, { threshold: .16 });
+      communityObserver.observe(communityReveal);
+    }
   }
 
   const portfolioModal = document.querySelector('#portfolio-modal');
@@ -54,6 +111,7 @@
   const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
   const sectionNavigation = document.querySelector('.section-navigation');
   const sectionNavigationSections = [...document.querySelectorAll('main > section[id]')];
+  let replayHeroEntrance = () => {};
 
   if (sectionNavigation && sectionNavigationSections.length) {
     const previousButton = sectionNavigation.querySelector('[data-section-nav="previous"]');
@@ -80,6 +138,14 @@
     nextButton.addEventListener('click', () => moveToSection(currentSectionIndex + 1));
     topButton.addEventListener('click', () => {
       window.scrollTo({ top: 0, behavior: reducedMotion.matches ? 'auto' : 'smooth' });
+      const replayWhenAtTop = () => {
+        if (window.scrollY > 2) {
+          window.requestAnimationFrame(replayWhenAtTop);
+          return;
+        }
+        replayHeroEntrance();
+      };
+      window.requestAnimationFrame(replayWhenAtTop);
     });
     window.addEventListener('scroll', () => {
       window.cancelAnimationFrame(scrollFrame);
@@ -195,6 +261,11 @@
       if (card.outerElement && card.innerElement) gsap.set([card.outerElement, card.innerElement], { clearProps: 'transform,opacity,visibility' });
       disposeHeroMotion = () => {};
     };
+  };
+
+  replayHeroEntrance = () => {
+    if (!hero || reducedMotion.matches) return;
+    setupHeroMotion();
   };
 
   window.addEventListener('load', setupHeroMotion, { once: true });
