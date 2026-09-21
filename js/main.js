@@ -1,4 +1,5 @@
 (() => {
+  document.documentElement.classList.add('js-ready');
   const usedMaterialsButton = document.querySelector('.used-button');
   const usedMaterials = document.querySelector('#used-materials');
   const materialMarkers = [...document.querySelectorAll('[data-material-card]')];
