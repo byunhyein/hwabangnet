@@ -497,4 +497,26 @@
   portfolioModal?.addEventListener('portfolio-modal-closed', () => window.requestAnimationFrame(initializeStartAccordion));
   desktopHover.addEventListener('change', initializeStartAccordion);
   reducedMotion.addEventListener('change', initializeStartAccordion);
+
+  const b2bServices = document.querySelector('[data-b2b-services]');
+  const b2bMobile = window.matchMedia('(max-width: 700px)');
+
+  if (b2bServices) {
+    const b2bCards = [...b2bServices.querySelectorAll('.b2b-service')];
+    const setB2bActive = (activeCard = null) => {
+      b2bCards.forEach((card) => {
+        const active = card === activeCard;
+        card.classList.toggle('is-active', active);
+        card.querySelector('.b2b-service__trigger')?.setAttribute('aria-expanded', String(active));
+      });
+    };
+    b2bCards.forEach((card) => {
+      const trigger = card.querySelector('.b2b-service__trigger');
+      trigger?.addEventListener('click', () => {
+        if (!b2bMobile.matches) return;
+        setB2bActive(card.classList.contains('is-active') ? null : card);
+      });
+    });
+    b2bMobile.addEventListener('change', () => setB2bActive());
+  }
 })();
